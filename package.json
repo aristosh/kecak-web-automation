@@ -1,0 +1,25 @@
+{
+  "name": "kecak-web-automation",
+  "version": "1.0.0",
+  "description": "Web automation for Kecak Workflow",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aristosh/kecak-web-automation.git"
+  },
+  "keywords": [
+    "kecak",
+    "workflow",
+    "web",
+    "automation"
+  ],
+  "author": "Aristo S. Hadisoeganda",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aristosh/kecak-web-automation/issues"
+  },
+  "homepage": "https://github.com/aristosh/kecak-web-automation#readme"
+}
