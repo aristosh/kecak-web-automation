@@ -66,6 +66,10 @@ class Automator {
     // TODO
   }
 
+  formGridFocus(gridElementId) {
+    // TODO
+  }
+
   formGridElementSubmit(gridElementId) {
     // TODO
   }
