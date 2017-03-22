@@ -13,9 +13,10 @@ class Automator {
   login(username, password) {
     driver.get(this.webContext + '/desktop');
     driver.findElement(this.By.id('header-login')).click();
+	driver.wait(this.until.elementLocated(this.By.name('j_username')),2000);
     driver.findElement(this.By.name('j_username')).sendKeys(username);
     driver.findElement(this.By.name('j_password')).sendKeys(password);
-    driver.findElement(this.By.name('submit')).click();
+    driver.findElement(this.By.css("button[type=submit]")).click();
   }
 
   /*
@@ -28,7 +29,7 @@ class Automator {
       driver.get(this.webContext + "/" + url.replace(/^\//, ''));
   }
 
-  /*
+  /*`
   * 
   * menu : menu label 
   */
@@ -45,6 +46,7 @@ class Automator {
   */
   datalistClick(text, index) {
     // TODO
+	driver.findElement(this.By.xpath("//table/tbody/tr[td[contains(text(),'"+text+"')]]/td["+index+"]")).click();
   }
 
   /*
@@ -52,17 +54,21 @@ class Automator {
   */
   datalistPage(page) {
     // TODO
+	driver.findElement(this.By.className("pagelinks")).findElement(this.By.linkText(""+page)).click();
+	
   }
 
   /*
   *  Set form element for current active windows
   */
   formElementSet(elementId, value) {
-    // TODO  
+    // TODO
+	driver.findElement(this.By.css("#"+elementId)).sendKeys(value);
   }
 
   formGridElementAdd(gridElementId) {
     // TODO
+	
   }
 
   /*
