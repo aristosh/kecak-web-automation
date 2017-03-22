@@ -73,7 +73,7 @@ class Automator {
   }
 }
 
-var web_automation = {
+var kecakDriver = {
   build : function(webContext, webdriver, forBrowser) {
     driver = new webdriver.Builder().forBrowser(forBrowser).build();
     return new Automator(webContext, webdriver, driver);
