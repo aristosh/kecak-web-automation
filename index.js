@@ -45,30 +45,29 @@ class Automator {
   * index : which column to be clicked, index starts from 1
   */
   datalistClick(text, index) {
-    // TODO
-	driver.findElement(this.By.xpath("//table/tbody/tr[td[contains(text(),'"+text+"')]]/td["+index+"]")).click();
+    driver.findElement(this.By.xpath("//table/tbody/tr[td[contains(text(),'"+text+"')]]/td["+index+"]")).click();
   }
 
   /*
   * Go to page
   */
   datalistPage(page) {
-    // TODO
-	driver.findElement(this.By.className("pagelinks")).findElement(this.By.linkText(""+page)).click();
-	
+    driver.findElement(this.By.className("pagelinks")).findElement(this.By.linkText(""+page)).click();
   }
 
   /*
   *  Set form element for current active windows
   */
   formElementSet(elementId, value) {
-    // TODO
-	driver.findElement(this.By.css("#"+elementId)).sendKeys(value);
+    driver.findElement(this.By.css("#"+elementId)).sendKeys(value);
   }
 
   formGridElementAdd(gridElementId) {
     // TODO
-	
+  }
+
+  formGridElementSubmit(gridElementId) {
+    // TODO
   }
 
   /*
@@ -86,4 +85,4 @@ var kecakDriver = {
   }
 }
 
-module.exports = web_automation;
+module.exports = kecakDriver;
