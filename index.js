@@ -6,18 +6,66 @@ class Automator {
     this.By = webdriver.By;
     this.until = webdriver.until;
     this.Key = webdriver.Key;
+
+    driver.get(webContext);
   }
 
   /*
   * Login
   */
   login(username, password) {
-    this.driver.get(this.webContext + '/desktop');
     this.driver.findElement(this.By.id('header-login')).click();
     this.driver.wait(this.until.elementLocated(this.By.name('j_username')),2000);
     this.driver.findElement(this.By.name('j_username')).sendKeys(username);
     this.driver.findElement(this.By.name('j_password')).sendKeys(password);
     this.driver.findElement(this.By.css("button[type=submit]")).click();
+  }
+
+  logout() {
+    this.driver.findElements(this.By.id('logoutText')).then(function(es) {
+      for(var i in es) {
+        (function() {
+          es[i].click();
+        })();
+      }
+    });
+  }
+
+  applicationSelect(app) {
+    var byCss = this.By.css;
+    var Key = this.Key;
+    var byLinkText = this.By.linkText;
+
+    driver.getWindowHandle().then(currentWindowHandle => {
+    driver.wait(this.until.elementLocated(this.By.linkText(app)));
+    this.driver.getCurrentUrl().then(function(url) {
+      if(!url.match(/\/web\/desktop/)) {
+        this.driver.get(webContext + '/web/desktop');
+      }
+      driver.findElements(byLinkText(app)).then(es => {
+        for(var i in es) {
+          var e = es[i];
+          (function() {
+            e.getText().then(text => {
+              if(text == app) {
+                console.log('applicationSelect : selecting [' + text + ']');
+                e.sendKeys(Key.ENTER);
+                driver.getAllWindowHandles().then(handles => {
+                  for(var j in handles) {
+                    console.log('handle ' + handles[j]);
+                    if(handles[j] !== currentWindowHandle) {
+                      driver.switchTo().window(handles[j]);
+                      break;
+                    }
+                  }
+                });
+              }
+            })
+          })();
+        }
+      });
+    });
+    });
   }
 
   /*
@@ -35,7 +83,7 @@ class Automator {
   * menu : menu label 
   */
   userviewClickMenu(menu) {
-    this.driver.wait(this.until.elementLocated(this.By.className("menu")), 5000);
+    this.driver.wait(this.until.elementLocated(this.By.className("menu")));
 
     //Open submenu "List" in User View
     this.driver.findElement(this.By.partialLinkText(menu)).click();
