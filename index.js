@@ -5,18 +5,19 @@ class Automator {
     this.driver = driver;
     this.By = webdriver.By;
     this.until = webdriver.until;
+    this.Key = webdriver.Key;
   }
 
   /*
   * Login
   */
   login(username, password) {
-    driver.get(this.webContext + '/desktop');
-    driver.findElement(this.By.id('header-login')).click();
-	driver.wait(this.until.elementLocated(this.By.name('j_username')),2000);
-    driver.findElement(this.By.name('j_username')).sendKeys(username);
-    driver.findElement(this.By.name('j_password')).sendKeys(password);
-    driver.findElement(this.By.css("button[type=submit]")).click();
+    this.driver.get(this.webContext + '/desktop');
+    this.driver.findElement(this.By.id('header-login')).click();
+    this.driver.wait(this.until.elementLocated(this.By.name('j_username')),2000);
+    this.driver.findElement(this.By.name('j_username')).sendKeys(username);
+    this.driver.findElement(this.By.name('j_password')).sendKeys(password);
+    this.driver.findElement(this.By.css("button[type=submit]")).click();
   }
 
   /*
@@ -24,9 +25,9 @@ class Automator {
   */
   go(url) {
     if(url.match(/https?:\/\//))
-      driver.get(url);
+      this.driver.get(url);
     else
-      driver.get(this.webContext + "/" + url.replace(/^\//, ''));
+      this.driver.get(this.webContext + "/" + url.replace(/^\//, ''));
   }
 
   /*`
@@ -34,10 +35,10 @@ class Automator {
   * menu : menu label 
   */
   userviewClickMenu(menu) {
-    driver.wait(this.until.elementLocated(this.By.className("menu")), 5000);
+    this.driver.wait(this.until.elementLocated(this.By.className("menu")), 5000);
 
     //Open submenu "List" in User View
-    driver.findElement(this.By.partialLinkText(menu)).click();
+    this.driver.findElement(this.By.partialLinkText(menu)).click();
   }
 
   /*
@@ -45,33 +46,72 @@ class Automator {
   * index : which column to be clicked, index starts from 1
   */
   datalistClick(text, index) {
-    driver.findElement(this.By.xpath("//table/tbody/tr[td[contains(text(),'"+text+"')]]/td["+index+"]")).click();
+    this.driver.findElement(this.By.xpath("//table/tbody/tr[td[contains(text(),'"+text+"')]]/td["+index+"]")).click();
   }
 
   /*
-  * Go to page
+    Go to page
   */
   datalistPage(page) {
-    driver.findElement(this.By.className("pagelinks")).findElement(this.By.linkText(""+page)).click();
+    this.driver.findElement(this.By.className("pagelinks")).findElement(this.By.linkText(""+page)).click();
   }
 
   /*
-  *  Set form element for current active windows
+    Set form element for current active windows
   */
   formElementSet(elementId, value) {
-    driver.findElement(this.By.css("#"+elementId)).sendKeys(value);
+    this.driver.wait(this.until.elementLocated(this.By.css("#" + elementId)));
+    this.driver.findElements(this.By.css("#" + elementId)).then(function(es) {
+      for(var i in es) {
+        (function() {
+          var e = es[i];
+          e.getAttribute('type').then(function(type) {
+            if(type == 'checkbox') {
+              var arrValue = Array.isArray(value) ? value : value.split(';');
+              for(var j in arrValue) {
+                (function() {
+                  var arrItem = arrValue[j];
+                  e.getAttribute('value').then(function(value) {
+                    if(value == arrItem) {
+                      e.click();
+                    }
+                  });
+                })();
+              }
+            } else if(type == 'radio') {
+              e.getAttribute('value').then(function(radioValue) {
+                if(value == radioValue) {
+                  e.click();
+                }
+              });
+            } else {
+              e.sendKeys(value);
+            }
+          });
+        })();
+      }
+    });
   }
 
+  /*
+    Add new item to grid
+  */
   formGridElementAdd(gridElementId) {
-    // TODO
+    this.driver.findElement(this.By.css("div#formgrid_" + gridElementId + " a.grid-action-add")).click();
+  
+    this.frame = this.driver.wait(this.until.elementLocated(this.By.css("iframe#formGridFrame_formgrid_" + gridElementId)));
+    this.driver.switchTo().frame(this.frame);
   }
 
-  formGridFocus(gridElementId) {
-    // TODO
-  }
-
-  formGridElementSubmit(gridElementId) {
-    // TODO
+  /*
+    Submit a grid form
+  */
+  formGridElementSubmit() {
+    var Key = this.Key; 
+    this.driver.wait(this.until.elementLocated({id : 'submit'})).then(function(e) {
+      e.sendKeys(Key.ENTER);
+      driver.switchTo().defaultContent();
+    });
   }
 
   /*

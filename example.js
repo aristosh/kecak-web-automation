@@ -1,12 +1,21 @@
 var automation = require('./index');
 var webdriver = require('selenium-webdriver');
 
-var automate = automation.build('http://kecak.kinnarastudio.com:8080/kecak/web/', webdriver, 'chrome');
-automate.login('admin', 'password123');
-automate.go('/userview/training_zakiy/appTraining');
-automate.userviewClickMenu('List');
-automate.datalistPage(2);
-automate.datalistClick("test rb", 5);
+var driver = automation.build('http://kecak.kinnarastudio.com:8080/kecak/web/', webdriver, 'chrome');
+driver.login('admin', 'password123');
+/*
+driver.go('/userview/training_zakiy/appTraining');
+driver.userviewClickMenu('');
+driver.datalistPage(2);
+driver.datalistClick("test rb", 5);
+*/
 
-
-//automate.quit();
+driver.go('http://cloud.kinnarastudio.com:8080/kecak/web/userview/testDatalistInbox/userview1');
+driver.userviewClickMenu('Form1');
+driver.formElementSet('field1', 'outer');
+driver.formElementSet('field3', '2b97500d-ac1f2796-4dffe8d3-259562b3;2b9e323b-ac1f2796-4dffe8d3-eca3138d');
+driver.formElementSet('field4', '2b97500d-ac1f2796-4dffe8d3-259562b3');
+driver.formGridElementAdd('field5');
+driver.formElementSet('field1','kambing');
+driver.formGridElementSubmit();
+//driver.quit();
