@@ -199,10 +199,17 @@ class Automator {
   }
 
   /*
-  * quit browser
+    quit browser
   */
   quit() {
     this.driver.quit();
+  }
+
+  /*
+    Retrive selenium driver
+  */
+  getDriver() {
+    return this.driver;
   }
 }
 
