@@ -128,38 +128,25 @@ class Automator {
     Set form element for current active windows
   */
   formElementSet(elementId, value) {
-    this.driver.wait(this.until.elementLocated(this.By.css("#" + elementId)));
-    this.driver.findElements(this.By.css("#" + elementId)).then(function(es) {
-      for(var i in es) {
-        (function() {
-          var e = es[i];
-          e.getAttribute('type').then(function(type) {
-            // TODO : handle select box, file upload
-            if(type == 'checkbox') {
-              var arrValue = Array.isArray(value) ? value : value.split(';');
-              for(var j in arrValue) {
-                (function() {
-                  var arrItem = arrValue[j];
-                  e.getAttribute('value').then(function(value) {
-                    if(value == arrItem) {
-                      e.click();
-                    }
-                  });
-                })();
-              }
-            } else if(type == 'radio') {
-              e.getAttribute('value').then(function(radioValue) {
-                if(value == radioValue) {
-                  e.click();
-                }
-              });
-            } else {
-              e.sendKeys(value);
-            }
-          });
-        })();
-      }
-    });
+    this.driver.wait(this.until.elementLocated(this.By.css("[name='"+elementId+"']")));
+    var formElement = driver.findElement(this.By.css("[name='"+elementId+"']"));
+	var type;
+	formElement.getAttribute("type").then(function (typeName) {
+		type = typeName;
+	});
+	var By = this.By;
+	formElement.getTagName().then( function(tagName) {
+		if(tagName == "select") {
+			formElement.findElement(By.xpath("../div[@class]")).click();
+			driver.findElement(By.xpath("//ul[@class='chosen-results']/li[contains(text(), '"+value+"')]")).click();
+		}
+		else if(tagName == "input" && (type == "radio" || type == "checkbox")) {
+			driver.findElement(By.xpath("//input[@id='"+elementId+"' and ../text()[normalize-space(.)='"+value+"']]")).click();
+		}
+		else {
+			formElement.sendKeys(value);
+		}
+	});
   }
 
   /*
