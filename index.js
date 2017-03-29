@@ -1,4 +1,4 @@
-var async = require('async');
+//var async = require('async');
 var seleniumWebdriver = require('selenium-webdriver');
 
 class Automator {
@@ -131,17 +131,24 @@ class Automator {
     this.driver.wait(this.until.elementLocated(this.By.css("[name='"+elementId+"']")));
     var formElement = driver.findElement(this.By.css("[name='"+elementId+"']"));
 	var type;
+	var arrValue = Array.isArray(value) ? value : value.split();
 	formElement.getAttribute("type").then(function (typeName) {
 		type = typeName;
 	});
 	var By = this.By;
 	formElement.getTagName().then( function(tagName) {
 		if(tagName == "select") {
-			formElement.findElement(By.xpath("../div[@class]")).click();
-			driver.findElement(By.xpath("//ul[@class='chosen-results']/li[contains(text(), '"+value+"')]")).click();
+			for(var i in arrValue) {
+				var item = arrValue[i];
+				formElement.findElement(By.xpath("../div[@class]")).click();
+				driver.findElement(By.xpath("//ul[@class='chosen-results']/li[contains(text(), '"+item+"')]")).click();
+			}
 		}
 		else if(tagName == "input" && (type == "radio" || type == "checkbox")) {
-			driver.findElement(By.xpath("//input[@id='"+elementId+"' and ../text()[normalize-space(.)='"+value+"']]")).click();
+			for(var i in arrValue) {
+				var item = arrValue[i];
+				driver.findElement(By.xpath("//input[@id='"+elementId+"' and ../text()[normalize-space(.)='"+item+"']]")).click();
+			}
 		}
 		else {
 			formElement.sendKeys(value);
