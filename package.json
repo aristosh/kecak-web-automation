@@ -21,5 +21,9 @@
   "bugs": {
     "url": "https://github.com/aristosh/kecak-web-automation/issues"
   },
-  "homepage": "https://github.com/aristosh/kecak-web-automation#readme"
+  "homepage": "https://github.com/aristosh/kecak-web-automation#readme",
+  "dependencies" : {
+    "async" : "2.2.*",
+    "selenium-webdriver" : "3.3.*"
+  }
 }

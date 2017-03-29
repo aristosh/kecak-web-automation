@@ -1,4 +1,14 @@
+var async = require('async');
+var seleniumWebdriver = require('selenium-webdriver');
+
 class Automator {
+  /*
+    Constructor
+
+    @params
+      webContext : website's base url
+      driver : can be chrome, phantomjs, firefox, ie
+  */
   constructor(webContext, webdriver, driver) {
     this.webContext = webContext.replace(/\/$/, '');
     this.webdriver = webdriver;
@@ -7,11 +17,12 @@ class Automator {
     this.until = webdriver.until;
     this.Key = webdriver.Key;
 
+    // go to base url
     driver.get(webContext);
   }
 
   /*
-  * Login
+    Login
   */
   login(username, password) {
     this.driver.findElement(this.By.id('header-login')).click();
@@ -19,9 +30,15 @@ class Automator {
     this.driver.findElement(this.By.name('j_username')).sendKeys(username);
     this.driver.findElement(this.By.name('j_password')).sendKeys(password);
     this.driver.findElement(this.By.css("button[type=submit]")).click();
+   
+    console.log('login : as [' + username + ']');
   }
 
+  /*
+    Logout
+  */
   logout() {
+    console.log('logout');
     this.driver.findElements(this.By.id('logoutText')).then(function(es) {
       for(var i in es) {
         (function() {
@@ -31,6 +48,9 @@ class Automator {
     });
   }
 
+  /*
+    Select application
+  */
   applicationSelect(app) {
     var byCss = this.By.css;
     var Key = this.Key;
@@ -52,7 +72,7 @@ class Automator {
                 e.sendKeys(Key.ENTER);
                 driver.getAllWindowHandles().then(handles => {
                   for(var j in handles) {
-                    console.log('handle ' + handles[j]);
+                    // TODO : potential bugs if more than 2 windows found
                     if(handles[j] !== currentWindowHandle) {
                       driver.switchTo().window(handles[j]);
                       break;
@@ -114,6 +134,7 @@ class Automator {
         (function() {
           var e = es[i];
           e.getAttribute('type').then(function(type) {
+            // TODO : handle select box, file upload
             if(type == 'checkbox') {
               var arrValue = Array.isArray(value) ? value : value.split(';');
               for(var j in arrValue) {
@@ -142,6 +163,13 @@ class Automator {
   }
 
   /*
+    Click form element based on locator
+  */
+  formElementClick(cssLocator) {
+    // TODO
+  }
+
+  /*
     Add new item to grid
   */
   formGridElementAdd(gridElementId) {
@@ -163,6 +191,14 @@ class Automator {
   }
 
   /*
+    Submit current form
+  */
+  formSubmit() {
+    console.log('Submit form');
+    // TODO
+  }
+
+  /*
   * quit browser
   */
   quit() {
@@ -171,9 +207,9 @@ class Automator {
 }
 
 var kecakDriver = {
-  build : function(webContext, webdriver, forBrowser) {
-    driver = new webdriver.Builder().forBrowser(forBrowser).build();
-    return new Automator(webContext, webdriver, driver);
+  build : function(webContext, forBrowser) {
+    driver = new seleniumWebdriver.Builder().forBrowser(forBrowser).build();
+    return new Automator(webContext, seleniumWebdriver, driver);
   }
 }
 
