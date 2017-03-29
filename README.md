@@ -1,12 +1,14 @@
 # Kecak Workflow Web Automation #
 
-Web automation for Kecak Workflow or Joget Workflow with Selenium Project as its driver engine.
+Web automation for Kecak Workflow or Joget Workflow with Selenium Project as its driver engine. It encapsulates Selenium to work specifically for Kecak Workflow and Joget Workflow.
 
 ## Installation ##
 
 ```
 npm install kecak-web-automation
 ```
+
+Browser driver components are not included and need to be configured seperately. Please refer to [here](https://www.npmjs.com/package/selenium-webdriver#installation) for browser driver components installation.
 
 ## Quick Start ##
 
