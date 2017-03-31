@@ -1,5 +1,13 @@
 //var async = require('async');
 var seleniumWebdriver = require('selenium-webdriver');
+var fs = require('fs');
+
+var driver;
+var By = seleniumWebdriver.By;
+var until = seleniumWebdriver.until;
+var Key = seleniumWebdriver.Key;
+
+var automator;
 
 class Automator {
   /*
@@ -9,13 +17,8 @@ class Automator {
       webContext : website's base url
       driver : can be chrome, phantomjs, firefox, ie
   */
-  constructor(webContext, webdriver, driver) {
+  constructor(webContext) {
     this.webContext = webContext.replace(/\/$/, '');
-    this.webdriver = webdriver;
-    this.driver = driver;
-    this.By = webdriver.By;
-    this.until = webdriver.until;
-    this.Key = webdriver.Key;
 
     // go to base url
     driver.get(webContext);
@@ -23,23 +26,30 @@ class Automator {
 
   /*
     Login
+
+    @params
+      username : string
+      passworc : string
   */
   login(username, password) {
-    this.driver.findElement(this.By.id('header-login')).click();
-    this.driver.wait(this.until.elementLocated(this.By.name('j_username')),2000);
-    this.driver.findElement(this.By.name('j_username')).sendKeys(username);
-    this.driver.findElement(this.By.name('j_password')).sendKeys(password);
-    this.driver.findElement(this.By.css("button[type=submit]")).click();
+    automator = this;
+
+    driver.findElement(By.id('header-login')).click();
+    driver.wait(until.elementLocated(By.name('j_username')),2000);
+    driver.findElement(By.name('j_username')).sendKeys(username);
+    driver.findElement(By.name('j_password')).sendKeys(password);
+    driver.findElement(By.css("button[type=submit]")).click().then(() => {
+      automator.writeLog('login : as username [' + username + ']');
+    });
    
-    console.log('login : as [' + username + ']');
   }
 
   /*
     Logout
   */
   logout() {
-    console.log('logout');
-    this.driver.findElements(this.By.id('logoutText')).then(function(es) {
+    this.writeLog('logout');
+    driver.findElements(By.id('logoutText')).then(function(es) {
       for(var i in es) {
         (function() {
           es[i].click();
@@ -52,23 +62,20 @@ class Automator {
     Select application
   */
   applicationSelect(app) {
-    var byCss = this.By.css;
-    var Key = this.Key;
-    var byLinkText = this.By.linkText;
-
+    this.writeLog('applicationSelect : application [' + app + ']');
     driver.getWindowHandle().then(currentWindowHandle => {
-    driver.wait(this.until.elementLocated(this.By.linkText(app)));
-    this.driver.getCurrentUrl().then(function(url) {
+    driver.wait(until.elementLocated(By.linkText(app)));
+    driver.getCurrentUrl().then(function(url) {
       if(!url.match(/\/web\/desktop/)) {
-        this.driver.get(webContext + '/web/desktop');
+        driver.get(webContext + '/web/desktop');
       }
-      driver.findElements(byLinkText(app)).then(es => {
+      driver.findElements(By.linkText(app)).then(es => {
         for(var i in es) {
           var e = es[i];
           (function() {
             e.getText().then(text => {
               if(text == app) {
-                console.log('applicationSelect : selecting [' + text + ']');
+                this.writeLog('applicationSelect : selecting [' + text + ']');
                 e.sendKeys(Key.ENTER);
                 driver.getAllWindowHandles().then(handles => {
                   for(var j in handles) {
@@ -92,10 +99,16 @@ class Automator {
   *  go to url
   */
   go(url) {
+    var writeLog = this.writeLog;
     if(url.match(/https?:\/\//))
-      this.driver.get(url);
+      driver.get(url).then(function() {
+        writeLog('go : url [' + url + ']')
+      });
     else
-      this.driver.get(this.webContext + "/" + url.replace(/^\//, ''));
+      driver.get(this.webContext + "/" + url.replace(/^\//, '')).then(function() {
+        console.log(writeLog);
+        writeLog('go : url [' + url + ']');
+      });
   }
 
   /*
@@ -103,10 +116,14 @@ class Automator {
   * menu : menu label 
   */
   userviewClickMenu(menu) {
-    this.driver.wait(this.until.elementLocated(this.By.className("menu")));
+    driver.wait(until.elementLocated(By.className("menu")));
 
     //Open submenu "List" in User View
-    this.driver.findElement(this.By.partialLinkText(menu)).click();
+    var writeLog = this.writeLog;
+    driver.findElement(By.partialLinkText(menu)).then(e => {
+      writeLog('userviewClickMenu : menu [' + menu + ']');
+      return e.click();
+    });
   }
 
   /*
@@ -114,14 +131,16 @@ class Automator {
   * index : which column to be clicked, index starts from 1
   */
   datalistClick(text, index) {
-    this.driver.findElement(this.By.xpath("//table/tbody/tr[td[contains(text(),'"+text+"')]]/td["+index+"]")).click();
+    this.writeLog('datalistClick : text [' + text + '] index [' + index + ']');
+    driver.findElement(By.xpath("//table/tbody/tr[td[contains(text(),'"+text+"')]]/td["+index+"]")).click();
   }
 
   /*
     Go to page
   */
   datalistPage(page) {
-    this.driver.findElement(this.By.className("pagelinks")).findElement(this.By.linkText(""+page)).click();
+    this.writeLog('detalistPage : page [' + page + ']');
+    driver.findElement(By.className("pagelinks")).findElement(By.linkText(""+page)).click();
   }
 
   /*
@@ -130,16 +149,15 @@ class Automator {
     @parameters
       elementId : string; element id
       value : string | array; multivalue string should be semicolon(;) delimited value
-
-    @return
-      undefined
+      valueAsLabel : boolean; for selectbox, checkbox, and radiobutton specify if the 'value' parameter is passed as label. Has no effect on any other element
   */
-  formElementSet(elementId, value) {
-    this.driver.wait(this.until.elementLocated(this.By.css("[name='"+elementId+"']")));
-    var formElement = driver.findElement(this.By.css("[name='"+elementId+"']"));
+  formElementSet(elementId, value, valueAsLabel = false) {
+    var writeLog = this.writeLog;
+    driver.wait(until.elementLocated(By.css("[name='"+elementId+"']")));
+
+    var formElement = driver.findElement(By.css("[name='"+elementId+"']"));
     var type;
     var arrValue = Array.isArray(value) ? value : value.split(/;/);
-    var By = this.By;
 
     formElement.getAttribute("type").then(function (typeName) {
       type = typeName;
@@ -150,12 +168,21 @@ class Automator {
         for(var i in arrValue) {
           var item = arrValue[i];
           formElement.findElement(By.xpath("../div[@class]")).click();
-          driver.findElement(By.xpath("//ul[@class='chosen-results']/li[contains(text(), '"+item+"')]")).click();
+   
+          if(valueAsLabel) {
+            writeLog('formElementSet : element id [' + elementId + '], value [' + value + '], value as label [' + valueAsLabel + ']');
+            driver.findElement(By.xpath("//ul[@class='chosen-results']/li[contains(text(), '"+item+"')]")).click();
+          }
         }
       } else if(tagName == "input" && (type == "radio" || type == "checkbox")) {
         for(var i in arrValue) {
           var item = arrValue[i];
-          driver.findElement(By.xpath("//input[@id='"+elementId+"' and ../text()[normalize-space(.)='"+item+"']]")).click();
+
+          writeLog('formElementSet : element id [' + elementId + '], value [' + item + '], value as label [' + valueAsLabel + ']');
+          if(valueAsLabel)
+            driver.findElement(By.xpath("//input[@id='"+elementId+"' and ../text()[normalize-space(.)='"+item+"']]")).click();
+          else
+            driver.findElement(By.css("#" + elementId + "[value='" + item + "']")).click();
         }
       } else {
         formElement.sendKeys(value);
@@ -167,25 +194,24 @@ class Automator {
     Click form element based on locator
   */
   formElementClick(cssLocator) {
-     this.driver.findElement()
+     driver.findElement()
   }
 
   /*
     Add new item to grid
   */
   formGridElementAdd(gridElementId) {
-    this.driver.findElement(this.By.css("div#formgrid_" + gridElementId + " a.grid-action-add")).click();
+    driver.findElement(By.css("div#formgrid_" + gridElementId + " a.grid-action-add")).click();
   
-    this.frame = this.driver.wait(this.until.elementLocated(this.By.css("iframe#formGridFrame_formgrid_" + gridElementId)));
-    this.driver.switchTo().frame(this.frame);
+    var frame = driver.wait(until.elementLocated(By.css("iframe#formGridFrame_formgrid_" + gridElementId)));
+    driver.switchTo().frame(frame);
   }
 
   /*
     Submit a grid form
   */
   formSubmit() {
-    var Key = this.Key; 
-    this.driver.wait(this.until.elementLocated({id : 'submit'})).then(function(e) {
+    driver.wait(until.elementLocated({id : 'submit'})).then(function(e) {
       e.sendKeys(Key.ENTER);
       driver.switchTo().defaultContent();
     });
@@ -195,21 +221,46 @@ class Automator {
     quit browser
   */
   quit() {
-    this.driver.quit();
+    driver.quit();
+    this.writeLog('quit : exiting browser');
+  }
+
+  /*
+    Take screeshot and save using date in ISO as filename
+  */
+  screenshot() {
+    driver.takeScreenshot().then(base64 => {
+      let now = new Date();
+      fs.writeFile(now.toISOString() + '.png', base64, 'base64', err => {
+        if(err)
+          automator.writeError(err);
+        else
+          automator.writeLog('screenshot : filename [' + now.toISOString() + ']');
+      });
+    });
   }
 
   /*
     Retrive selenium driver
   */
   getDriver() {
-    return this.driver;
+    return driver;
+  }
+
+  writeLog(log) {
+    console.log(log);
+  }
+
+  writeError(err) {
+    if(err)
+      console.error(err);
   }
 }
 
 var kecakDriver = {
   build : function(webContext, forBrowser) {
     driver = new seleniumWebdriver.Builder().forBrowser(forBrowser).build();
-    return new Automator(webContext, seleniumWebdriver, driver);
+    return new Automator(webContext);
   }
 }
 
