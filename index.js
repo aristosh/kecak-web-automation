@@ -98,7 +98,7 @@ class Automator {
       this.driver.get(this.webContext + "/" + url.replace(/^\//, ''));
   }
 
-  /*`
+  /*
   * 
   * menu : menu label 
   */
@@ -126,41 +126,48 @@ class Automator {
 
   /*
     Set form element for current active windows
+ 
+    @parameters
+      elementId : string; element id
+      value : string | array; multivalue string should be semicolon(;) delimited value
+
+    @return
+      undefined
   */
   formElementSet(elementId, value) {
     this.driver.wait(this.until.elementLocated(this.By.css("[name='"+elementId+"']")));
     var formElement = driver.findElement(this.By.css("[name='"+elementId+"']"));
-	var type;
-	var arrValue = Array.isArray(value) ? value : value.split();
-	formElement.getAttribute("type").then(function (typeName) {
-		type = typeName;
-	});
-	var By = this.By;
-	formElement.getTagName().then( function(tagName) {
-		if(tagName == "select") {
-			for(var i in arrValue) {
-				var item = arrValue[i];
-				formElement.findElement(By.xpath("../div[@class]")).click();
-				driver.findElement(By.xpath("//ul[@class='chosen-results']/li[contains(text(), '"+item+"')]")).click();
-			}
-		}
-		else if(tagName == "input" && (type == "radio" || type == "checkbox")) {
-			for(var i in arrValue) {
-				var item = arrValue[i];
-				driver.findElement(By.xpath("//input[@id='"+elementId+"' and ../text()[normalize-space(.)='"+item+"']]")).click();
-			}
-		}
-		else {
-			formElement.sendKeys(value);
-		}
-	});
+    var type;
+    var arrValue = Array.isArray(value) ? value : value.split(/;/);
+    var By = this.By;
+
+    formElement.getAttribute("type").then(function (typeName) {
+      type = typeName;
+    });
+
+    formElement.getTagName().then( function(tagName) {
+      if(tagName == "select") {
+        for(var i in arrValue) {
+          var item = arrValue[i];
+          formElement.findElement(By.xpath("../div[@class]")).click();
+          driver.findElement(By.xpath("//ul[@class='chosen-results']/li[contains(text(), '"+item+"')]")).click();
+        }
+      } else if(tagName == "input" && (type == "radio" || type == "checkbox")) {
+        for(var i in arrValue) {
+          var item = arrValue[i];
+          driver.findElement(By.xpath("//input[@id='"+elementId+"' and ../text()[normalize-space(.)='"+item+"']]")).click();
+        }
+      } else {
+        formElement.sendKeys(value);
+      }
+    });
   }
 
   /*
     Click form element based on locator
   */
   formElementClick(cssLocator) {
-    // TODO
+     this.driver.findElement()
   }
 
   /*
@@ -176,20 +183,12 @@ class Automator {
   /*
     Submit a grid form
   */
-  formGridElementSubmit() {
+  formSubmit() {
     var Key = this.Key; 
     this.driver.wait(this.until.elementLocated({id : 'submit'})).then(function(e) {
       e.sendKeys(Key.ENTER);
       driver.switchTo().defaultContent();
     });
-  }
-
-  /*
-    Submit current form
-  */
-  formSubmit() {
-    console.log('Submit form');
-    // TODO
   }
 
   /*
