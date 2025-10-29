@@ -34,7 +34,8 @@ class Automator {
   login(username, password) {
     automator = this;
 
-    driver.findElement(By.id('header-login')).click();
+    if(driver.findElements(By.xpath("//*[@id='header-login']")).size() != 0)
+      driver.findElement(By.id('header-login')).click();
     driver.wait(until.elementLocated(By.name('j_username')),2000);
     driver.findElement(By.name('j_username')).sendKeys(username);
     driver.findElement(By.name('j_password')).sendKeys(password);
